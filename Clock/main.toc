@@ -1,0 +1,18 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Hardware Components}{3}{section.2}%
+\contentsline {section}{\numberline {3}Hardware Setup}{3}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Connections}{5}{subsection.3.1}%
+\contentsline {section}{\numberline {4}How my code works?}{6}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Multiplexing (7-Segment Display)}{6}{subsection.4.1}%
+\contentsline {subsubsection}{\numberline {4.1.1}Multiplexing Implementation in ISR}{6}{subsubsection.4.1.1}%
+\contentsline {subsection}{\numberline {4.2}Button Functionality}{6}{subsection.4.2}%
+\contentsline {subsubsection}{\numberline {4.2.1}Button Press Detection}{6}{subsubsection.4.2.1}%
+\contentsline {subsection}{\numberline {4.3}Debouncing}{6}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Time Zone Functionality}{7}{subsection.4.4}%
+\contentsline {subsubsection}{\numberline {4.4.1}Time Zone Selection and Adjustment}{7}{subsubsection.4.4.1}%
+\contentsline {subsection}{\numberline {4.5}Timekeeping Using Timers}{7}{subsection.4.5}%
+\contentsline {section}{\numberline {5}Advatanges of AVR-GCC over other}{8}{section.5}%
+\contentsline {section}{\numberline {6}Code}{8}{section.6}%
+\contentsline {section}{\numberline {7}Precautions}{12}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Hardware}{12}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Software}{12}{subsection.7.2}%

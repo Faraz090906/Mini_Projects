@@ -1,0 +1,251 @@
+module fft #(
+    parameter IN_INT = 3,
+    parameter FRAC   = 5,
+    parameter IN_W   = IN_INT + FRAC,
+    parameter INT    = 6,
+    parameter W      = INT + FRAC
+)(
+    input  clk,
+    input  rst,
+    input  valid_in,
+    input  signed [IN_W-1:0] xr_in,
+    input  signed [IN_W-1:0] xi_in,
+
+    output valid_out,
+    output signed [W-1:0] xr_out,
+    output signed [W-1:0] xi_out
+);
+
+wire signed [W-1:0] xri_ext;
+wire signed [W-1:0] xii_ext;
+
+assign xri_ext = {{(W-IN_W){xr_in[IN_W-1]}}, xr_in};
+assign xii_ext = {{(W-IN_W){xi_in[IN_W-1]}}, xi_in};
+
+wire v1, v2, v3;
+wire signed [W-1:0] s1r, s1i;
+wire signed [W-1:0] s2r, s2i;
+wire signed [W-1:0] s3r, s3i;
+
+stage #(
+    .INT(INT),
+    .FRAC(FRAC),
+    .W(W),
+    .DELAY(4),
+    .STAGE(1)
+) STAGE1 (
+    .clk(clk),
+    .rst(rst),
+    .valid_in(valid_in),
+    .xr_in(xri_ext),
+    .xi_in(xii_ext),
+    .valid_out(v1),
+    .xr_out(s1r),
+    .xi_out(s1i)
+);
+
+stage #(
+    .INT(INT),
+    .FRAC(FRAC),
+    .W(W),
+    .DELAY(2),
+    .STAGE(2)
+) STAGE2 (
+    .clk(clk),
+    .rst(rst),
+    .valid_in(v1),
+    .xr_in(s1r),
+    .xi_in(s1i),
+    .valid_out(v2),
+    .xr_out(s2r),
+    .xi_out(s2i)
+);
+
+stage #(
+    .INT(INT),
+    .FRAC(FRAC),
+    .W(W),
+    .DELAY(1),
+    .STAGE(3)
+) STAGE3 (
+    .clk(clk),
+    .rst(rst),
+    .valid_in(v2),
+    .xr_in(s2r),
+    .xi_in(s2i),
+    .valid_out(v3),
+    .xr_out(s3r),
+    .xi_out(s3i)
+);
+
+assign valid_out = v3;
+assign xr_out    = s3r;
+assign xi_out    = s3i;
+
+endmodule
+
+module stage #(
+    parameter INT   = 4,
+    parameter FRAC  = 5,
+    parameter W     = INT + FRAC,
+    parameter DELAY = 4,
+    parameter STAGE = 1
+)(
+    input  clk,
+    input  rst,
+    input  valid_in,
+    input  signed [W-1:0] xr_in,
+    input  signed [W-1:0] xi_in,
+
+    output reg valid_out,
+    output reg signed [W-1:0] xr_out,
+    output reg signed [W-1:0] xi_out
+);
+
+integer i;
+
+reg signed [W-1:0] mem_r [0:DELAY-1];
+reg signed [W-1:0] mem_i [0:DELAY-1];
+
+reg [7:0] count;
+reg primed;
+
+reg signed [W-1:0] a_r, a_i;
+reg signed [W-1:0] b_r, b_i;
+reg signed [W-1:0] wr, wi;
+
+wire signed [W-1:0] sum_r;
+wire signed [W-1:0] sum_i;
+wire signed [W-1:0] diff_tw_r;
+wire signed [W-1:0] diff_tw_i;
+wire [7:0] idx;
+
+assign idx = count - DELAY;
+
+localparam signed [W-1:0] ONE_I = (1 << FRAC);
+localparam signed [W-1:0] SQ_I  = ((1 << FRAC) * 707) / 1000;
+
+but8i.
+    .INT(INT),
+    .FRAC(FRAC),
+    .W(W)
+) BF (
+    .ar(a_r),
+    .ai(a_i),
+    .br(b_r),
+    .bi(b_i),
+    .wr(wr),
+    .wi(wi),
+    .sum_r(sum_r),
+    .sum_i(sum_i),
+    .diff_tw_r(diff_tw_r),
+    .diff_tw_i(diff_tw_i)
+);
+
+always @(*) begin
+    a_r = {W{1'b0}};
+    a_i = {W{1'b0}};
+    b_r = xr_in;
+    b_i = xi_in;
+
+    if (count >= DELAY) begin
+        a_r = mem_r[idx];
+        a_i = mem_i[idx];
+    end
+end
+
+always @(*) begin
+    wr = ONE_I;
+    wi = {W{1'b0}};
+
+    case (STAGE)
+        1: begin
+            case (idx)
+                0: begin wr =  ONE_I; wi =  0;      end
+                1: begin wr =  SQ_I;  wi = -SQ_I;   end
+                2: begin wr =  0;     wi = -ONE_I;  end
+                3: begin wr = -SQ_I;  wi = -SQ_I;   end
+                default: begin wr = ONE_I; wi = 0;  end
+            endcase
+        end
+
+        2: begin
+            case (idx[0])
+                1'b0: begin wr = ONE_I; wi = 0;      end
+                1'b1: begin wr = 0;     wi = -ONE_I; end
+            endcase
+        end
+
+        3: begin
+            wr = ONE_I;
+            wi = 0;
+        end
+    endcase
+end
+
+always @(posedge clk or posedge rst) begin
+    if (rst) begin
+        count     <= 0;
+        primed    <= 0;
+        valid_out <= 0;
+        xr_out    <= 0;
+        xi_out    <= 0;
+
+        for (i = 0; i < DELAY; i = i + 1) begin
+            mem_r[i] <= 0;
+            mem_i[i] <= 0;
+        end
+    end else begin
+        valid_out <= 0;
+        xr_out    <= 0;
+        xi_out    <= 0;
+
+        if (count < DELAY) begin
+            if (valid_in) begin
+                if (primed) begin
+                    valid_out <= 1;
+                    xr_out    <= mem_r[count];
+                    xi_out    <= mem_i[count];
+                end
+
+                mem_r[count] <= xr_in;
+                mem_i[count] <= xi_in;
+
+                if (count == DELAY - 1)
+                    count <= DELAY;
+                else
+                    count <= count + 1;
+            end else if (primed) begin
+                valid_out <= 1;
+                xr_out    <= mem_r[count];
+                xi_out    <= mem_i[count];
+
+                if (count == DELAY - 1) begin
+                    count  <= 0;
+                    primed <= 0;
+                end else begin
+                    count <= count + 1;
+                end
+            end
+        end else begin
+            if (valid_in) begin
+                valid_out <= 1;
+                xr_out    <= sum_r;
+                xi_out    <= sum_i;
+
+                mem_r[idx] <= diff_tw_r;
+                mem_i[idx] <= diff_tw_i;
+
+                if (count == (2*DELAY - 1)) begin
+                    count  <= 0;
+                    primed <= 1;
+                end else begin
+                    count <= count + 1;
+                end
+            end
+        end
+    end
+end
+
+endmodule
+

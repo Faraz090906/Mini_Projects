@@ -1,0 +1,158 @@
+`timescale 1ns/1ps
+
+module tb_fft_cases;
+
+parameter IN_INT = 3;
+parameter FRAC   = 5;
+parameter IN_W   = IN_INT + FRAC;
+
+parameter INT    = 6;
+parameter W      = INT + FRAC;
+
+parameter N = 8;
+
+reg clk;
+reg rst;
+reg valid_in;
+reg signed [IN_W-1:0] xr_in;
+reg signed [IN_W-1:0] xi_in;
+
+wire valid_out;
+wire signed [W-1:0] xr_out;
+wire signed [W-1:0] xi_out;
+
+integer fin;
+integer fout;
+integer code;
+integer k;
+integer in_r;
+integer in_i;
+
+fft #(
+    .IN_INT(IN_INT),
+    .FRAC(FRAC),
+    .IN_W(IN_W),
+    .INT(INT),
+    .W(W)
+) DUT (
+    .clk(clk),
+    .rst(rst),
+    .valid_in(valid_in),
+    .xr_in(xr_in),
+    .xi_in(xi_in),
+    .valid_out(valid_out),
+    .xr_out(xr_out),
+    .xi_out(xi_out)
+);
+
+initial begin
+    clk = 0;
+    forever #5 clk = ~clk;
+end
+
+task reset_dut;
+begin
+    rst      = 1;
+    valid_in = 0;
+    xr_in    = 0;
+    xi_in    = 0;
+    repeat(4) @(posedge clk);
+    rst = 0;
+end
+endtask
+
+task open_case_files;
+    input integer cid;
+    begin
+        case (cid)
+            1: begin
+                fin  = $fopen("input_case1.txt", "r");
+                fout = $fopen("output_case1.txt", "w");
+            end
+            2: begin
+                fin  = $fopen("input_case2.txt", "r");
+                fout = $fopen("output_case2.txt", "w");
+            end
+            3: begin
+                fin  = $fopen("input_case3.txt", "r");
+                fout = $fopen("output_case3.txt", "w");
+            end
+            4: begin
+                fin  = $fopen("input_case4.txt", "r");
+                fout = $fopen("output_case4.txt", "w");
+            end
+            default: begin
+                fin  = 0;
+                fout = 0;
+            end
+        endcase
+    end
+endtask
+
+task close_case_files;
+begin
+    if (fin  != 0) $fclose(fin);
+    if (fout != 0) $fclose(fout);
+end
+endtask
+
+task run_case;
+    input integer cid;
+    begin
+        $display("Running case %0d", cid);
+
+        open_case_files(cid);
+
+        if (fin == 0) begin
+            $display("ERROR: could not open input_case%0d.txt", cid);
+            $finish;
+        end
+
+        reset_dut();
+
+        // Feed 8 samples
+        for (k = 0; k < N; k = k + 1) begin
+            code = $fscanf(fin, "%d %d\n", in_r, in_i);
+            @(posedge clk);
+            valid_in <= 1;
+            xr_in    <= in_r;
+            xi_in    <= in_i;
+        end
+
+        // Stop input
+        @(posedge clk);
+        valid_in <= 0;
+        xr_in    <= 0;
+        xi_in    <= 0;
+
+        // Flush pipeline
+        for (k = 0; k < 50; k = k + 1) begin
+            @(posedge clk);
+        end
+
+        close_case_files();
+    end
+endtask
+
+initial begin
+    rst      = 0;
+    valid_in = 0;
+    xr_in    = 0;
+    xi_in    = 0;
+
+    run_case(1);
+    run_case(2);
+    run_case(3);
+    run_case(4);
+
+    $display("All cases done.");
+    $finish;
+end
+
+always @(posedge clk) begin
+    if (valid_out && fout != 0) begin
+        $fwrite(fout, "%0d %0d\n", xr_out, xi_out);
+    end
+end
+
+endmodule

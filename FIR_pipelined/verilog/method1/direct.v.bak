@@ -1,0 +1,103 @@
+module direct_fir_pipeline #(
+    parameter a = 2,
+    parameter b = 14,
+    parameter taps = 100
+) (
+    input clk,
+    input rst,
+    input  signed [a+b:0] x,
+    input  signed [a+b:0] h [0:taps-1],
+    output reg signed [a+b:0] y
+);
+
+    reg signed [a+b:0] x_reg [0:taps-1];
+    reg signed [a+b:0] prod;
+    reg signed [a+b:0] acc;
+
+    reg [7:0] k;
+    integer i;
+
+    // Shift register
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            for (i = 0; i < taps; i = i + 1)
+                x_reg[i] <= 0;
+        end
+        else if (k == 0) begin
+            for (i = taps-1; i > 0; i = i - 1)
+                x_reg[i] <= x_reg[i-1];
+            x_reg[0] <= x;
+        end
+    end
+
+    // Serial pipelined FIR
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            acc  <= 0;
+            prod <= 0;
+            y    <= 0;
+            k    <= 0;
+        end
+        else begin
+            if (k == 0) begin
+                acc  <= 0;
+                prod <= q_mul(x, h[0]);
+                k    <= 1;
+            end
+            else if (k < taps) begin
+                acc  <= q_add(acc, prod);
+                prod <= q_mul(x_reg[k], h[k]);
+                k    <= k + 1;
+            end
+            else begin
+                y <= q_add(acc, prod);
+                k <= 0;
+            end
+        end
+    end
+
+    function signed [a+b:0] q_mul;
+        input signed [a+b:0] x1;
+        input signed [a+b:0] h1;
+        reg signed [2*a + 2*b + 1:0] product;
+        reg signed [2*a + b + 1:0] shifted;
+        reg signed [a+b:0] max;
+        reg signed [a+b:0] min;
+    begin
+        product = x1 * h1;
+        shifted = product >>> b;
+
+        max = {1'b0, {(a+b){1'b1}}};
+        min = {1'b1, {(a+b){1'b0}}};
+
+        if (shifted > max)
+            q_mul = max;
+        else if (shifted < min)
+            q_mul = min;
+        else
+            q_mul = shifted[a+b:0];
+    end
+    endfunction
+
+    function signed [a+b:0] q_add;
+        input signed [a+b:0] x1;
+        input signed [a+b:0] x2;
+        reg signed [a+b+1:0] sum;
+        reg signed [a+b:0] max;
+        reg signed [a+b:0] min;
+    begin
+        sum = x1 + x2;
+
+        max = {1'b0, {(a+b){1'b1}}};
+        min = {1'b1, {(a+b){1'b0}}};
+
+        if (sum > max)
+            q_add = max;
+        else if (sum < min)
+            q_add = min;
+        else
+            q_add = sum[a+b:0];
+    end
+    endfunction
+
+endmodule
