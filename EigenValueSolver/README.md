@@ -3,10 +3,7 @@
 This repository provides an ANSI C implementation and theoretical performance analysis for computing the eigenvalues of complex-valued square matrices ($\mathbb{C}^{n \times n}$) using the classical iterative QR decomposition method based on the Gram-Schmidt orthogonalization process.
 
 ## Author
-* **Student:** Patnam Shariq Faraz Muhammed (EE24BTECH11049)
-* **Institution:** Indian Institute of Technology Hyderabad (IITH)
-* **Department:** Department of Electrical Engineering
-* **Course:** Software Assignment (EE1010 Framework)
+* Patnam Shariq Faraz Muhammed (EE24BTECH11049)
 
 ---
 
@@ -51,6 +48,23 @@ As $k \to \infty$, $A_k$ asymptotically converges to a Schur/Hessenberg form, is
 
 ---
 
+## Limitations
+* **Numerical Instability:** Classical Gram-Schmidt (CGS) suffers from severe loss of orthogonality due to floating-point round-off errors on ill-conditioned matrices.
+* **Slow Convergence:** Shift-less iterations cause poor convergence speed when eigenvalues are clustered closely in magnitude.
+* **High Iteration Overhead:** Re-calculating a full dense $\mathcal{O}(n^3)$ decomposition every single iteration creates heavy execution bottlenecks.
+* **Block Rigidity:** Deflation logic is restricted strictly to $1 \times 1$ and $2 \times 2$ isolated blocks.
+
+---
+
+## Further Improvements & Acceleration Methods
+* **Upper Hessenberg Pre-conditioning:** Reduce matrix $A$ to an Upper Hessenberg form initially ($\mathcal{O}(n^3)$ once), dropping individual iteration costs from $\mathcal{O}(n^3)$ down to $\mathcal{O}(n^2)$.
+* **Rayleigh/Wilkinson Shifts:** Introduce scalar updates ($A_k - \mu_k I$) to accelerate convergence from a slow linear rate up to a quadratic/cubic rate.
+* **Householder Reflections or Givens Rotations:** Replace Gram-Schmidt with Givens rotations to protect numerical stability and zero out elements with $n-1$ simple coordinate rotations.
+* **Contiguous 1D Array Layout:** Map the dynamic 2D array into a continuous 1D block (`size * size`) to maximize CPU spatial locality and eliminate cache misses.
+* **SIMD & Loop Parallelization:** Inject OpenMP directives (`#pragma omp parallel for`) and vectorize vector inner products to distribute compute overhead across multi-core systems.
+
+---
+
 ## Compilation and Execution
 
 ### Prerequisites
@@ -61,3 +75,4 @@ Compile the implementation file linking the system math libraries explicitly (`-
 
 ```bash
 gcc -O2 main.c -o qr_eigen_solver -lm
+
