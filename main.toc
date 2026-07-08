@@ -1,0 +1,30 @@
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}%
+\contentsline {section}{\numberline {2}Hardware Components}{3}{section.2}%
+\contentsline {section}{\numberline {3}Connections}{3}{section.3}%
+\contentsline {section}{\numberline {4}Mathematical Expressions}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Core Trigonometric Functions}{5}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Inverse Trigonometric Functions}{5}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Exponential and Logarithmic Functions}{5}{subsection.4.3}%
+\contentsline {subsection}{\numberline {4.4}Hyperbolic Functions}{5}{subsection.4.4}%
+\contentsline {subsection}{\numberline {4.5}Utility Functions}{5}{subsection.4.5}%
+\contentsline {subsection}{\numberline {4.6}Mathematical Constants}{5}{subsection.4.6}%
+\contentsline {subsection}{\numberline {4.7}Important Implementation Notes}{5}{subsection.4.7}%
+\contentsline {subsection}{\numberline {4.8}Code-funcs.c}{6}{subsection.4.8}%
+\contentsline {section}{\numberline {5}Overall System Architecture}{10}{section.5}%
+\contentsline {section}{\numberline {6}Expression Parsing and Evaluation System}{10}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Key Data Structures}{10}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Shunting Yard Algorithm for Parsing}{10}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Evaluation of RPN Expressions}{11}{subsection.6.3}%
+\contentsline {section}{\numberline {7}User Interface and Input Handling}{12}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Input Mechanisms}{12}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Button Matrix Scanning and Debouncing}{12}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}Debouncing Mechanism}{12}{subsection.7.3}%
+\contentsline {subsection}{\numberline {7.4}Display Management}{13}{subsection.7.4}%
+\contentsline {section}{\numberline {8}Hardware Interaction Layer}{13}{section.8}%
+\contentsline {subsection}{\numberline {8.1}Memory Management}{13}{subsection.8.1}%
+\contentsline {subsection}{\numberline {8.2}Microcontroller Interfaces}{13}{subsection.8.2}%
+\contentsline {section}{\numberline {9}Optimization Strategies}{13}{section.9}%
+\contentsline {subsection}{\numberline {9.1}Memory Optimization}{13}{subsection.9.1}%
+\contentsline {subsection}{\numberline {9.2}Performance Optimization}{14}{subsection.9.2}%
+\contentsline {section}{\numberline {10}Key Design Patterns}{14}{section.10}%
+\contentsline {section}{\numberline {11}Potential Improvements}{14}{section.11}%
